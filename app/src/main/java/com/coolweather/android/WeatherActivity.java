@@ -12,6 +12,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.provider.ContactsContract;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -98,9 +99,9 @@ public class WeatherActivity extends AppCompatActivity {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
         String weatherString = preferences.getString("weather",null);
         final String weatherId;
-        if (weatherString != null) {
-            // 有缓存时直接解析天气数据
-            Weather weather = Utility.handleWeatherResponse(weatherString);
+        Weather weather = Utility.handleWeatherResponse(weatherString);
+        if (weatherString != null && getIntent().getStringExtra("weather_id") == null) {
+            // 有缓存直接解析天气数据
             weatherId = weather.basic.weatherId;
             showWeatherInfo(weather);
         } else {
@@ -112,7 +113,7 @@ public class WeatherActivity extends AppCompatActivity {
         swipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                requestWeather(weatherId);
+                refreshWeatherInfo();
             }
         });
         navButton.setOnClickListener(new View.OnClickListener() {
@@ -127,6 +128,16 @@ public class WeatherActivity extends AppCompatActivity {
         } else {
             loadBingPic();
         }
+    }
+
+    /**
+     * 下拉信息刷新
+     */
+    private void refreshWeatherInfo() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String weatherString = preferences.getString("weather",null);
+        Weather weather = Utility.handleWeatherResponse(weatherString);
+        requestWeather(weather.basic.weatherId);
     }
 
     /**
